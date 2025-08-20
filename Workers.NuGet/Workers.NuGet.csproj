@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Platforms>x64</Platforms>
+    <TargetFramework>net6.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="(&#xD;&#xA;    echo ^&lt;# &#xD;&#xA;    echo ^	string platform = &quot;$(PlatformName)&quot;;&#xD;&#xA;    echo #^&gt;&#xD;&#xA;) &gt; obj/PostBuildProperties.stt&#xD;&#xA;&#xD;&#xA;call &quot;$(ProjectDir)PreBuild.bat&quot; &quot;$(ProjectDir)&quot;" />
+  </Target>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="call &quot;$(ProjectDir)PostBuild.bat&quot; &quot;$(ProjectDir)&quot;" />
+  </Target>
+
+
+</Project>

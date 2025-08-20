@@ -1,0 +1,24 @@
+<#@ output extension=".nuspec" #>
+
+<#@ include file="NuGetBase.stt" #>
+
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id><#= id #></id>
+    <version><#= nugetVersion #></version>
+    <authors><#= authors #></authors>
+    <owners><#= authors #></owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description><#= description #></description>
+    <releaseNotes><#= releaseNotes #></releaseNotes>
+    <copyright><#= authors #> <#= DateTime.Now.Year #></copyright>
+    <tags><#= tags #></tags>
+    <dependencies>
+<#= dependencies #>
+    </dependencies>
+  </metadata>
+  <files>
+<#= files #>
+  </files>
+</package>
