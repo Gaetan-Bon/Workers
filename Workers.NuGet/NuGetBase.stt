@@ -1,0 +1,85 @@
+<#@ include file="obj/PostBuildProperties.stt" #>
+
+<#@ assembly name="System.Core.dll" #>
+<#@ assembly name="System.Runtime.dll" #>
+<#@ assembly name="System.Linq.dll" #>
+<#@ assembly name="System.Xml.dll" #>
+<#@ assembly name="System.Xml.Linq.dll" #>
+
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+
+<#
+  string id = "Workers";
+  string authors = "Gaetan BONHOMME";
+  string nugetVersion = "1.0.0";
+  string description = "Workers package";
+  string releaseNotes = string.Empty;
+  string tags = "Workers";
+
+  // /!\ RELATIVE PATH /!\
+  string csprojPath = @"..\Workers\Workers.csproj";
+
+  // /!\ RELATIVE PATH /!\
+  string baseOutputPath = @"..\Build\" + platform + @"\";
+
+  var assemblies = new string[]
+  {
+    "Workers.dll"
+  };
+#>
+
+<#
+    string dependencies = NuGetHelper.GetDependencies(csprojPath);
+    var files = NuGetHelper.GetFiles(baseOutputPath, assemblies);
+#>
+
+<#+
+    public static class NuGetHelper
+    {
+        private static readonly Regex s_frameworkRegex = new Regex("net\\d+(\\.\\d+)?");
+
+        public static string GetFiles(string baseOutputPath, string[] assemblies)
+        {
+            string baseStringFile = "\t\t<file src=\"{0}\" target=\"lib\\{1}\\{2}\" />";
+            var fileList = new List<string>();
+            foreach (var directory in new DirectoryInfo(baseOutputPath).EnumerateDirectories())
+            {
+                fileList.AddRange(assemblies.Select(a => string.Format(baseStringFile, Path.Combine(directory.FullName, a), directory.Name.Replace("-windows", string.Empty), a)));
+                fileList.AddRange(directory.EnumerateFiles().Where(f => f.Extension.Contains("xml")).Select(f => string.Format(baseStringFile, f.FullName, directory.Name.Replace("-windows", string.Empty), f.Name)));
+            }
+            return string.Join("\r\n", fileList);
+        }
+
+        public static string GetDependencies(string csprojPath)
+        {
+            var xml = new XmlDocument();
+            xml.Load(csprojPath);
+            var targetFrameworks = (xml.SelectNodes("Project/PropertyGroup/TargetFramework").OfType<XmlNode>().FirstOrDefault() ?? xml.SelectNodes("Project/PropertyGroup/TargetFrameworks").OfType<XmlNode>().First()).InnerText.Replace("-windows", string.Empty).Split(';');
+            string baseStringDependency = "\t\t\t\t<dependency id=\"{0}\" version=\"{1}\" />";
+            var nugetContexts = xml.SelectNodes("Project/ItemGroup/PackageReference").OfType<XmlNode>().GroupBy(n => GetFramework(n)).Where(g => g.Key == string.Empty || targetFrameworks.Contains(g.Key)).ToDictionary(k => k.Key, v => v.Select(n => string.Format(baseStringDependency, GetNugetName(n), GetNugetVersion(n))).ToList());
+            var defaultNugetContext = nugetContexts.ContainsKey(string.Empty) ? nugetContexts[string.Empty] : null;
+            if (nugetContexts.Count > 1 && defaultNugetContext != null)
+            {
+                foreach (var nugetContext in nugetContexts) nugetContext.Value.AddRange(defaultNugetContext);
+            }
+            return string.Join("\r\n", nugetContexts.Select(n => string.Format("\t\t\t<group" + (n.Key == string.Empty ? ">" : " targetFramework=\"" + n.Key + "\">") + "\r\n{0}\r\n\t\t\t</group>", string.Join("\r\n", n.Value.Distinct()))));
+        }
+
+        public static string GetFramework(XmlNode node)
+        {
+            var attribute = node.ParentNode.Attributes.OfType<XmlAttribute>().FirstOrDefault(a => a.Name.Equals("Condition", StringComparison.InvariantCultureIgnoreCase));
+            if (attribute == null) return string.Empty;
+            var match = s_frameworkRegex.Match(attribute.InnerText);
+            if (match == null) return string.Empty;
+            return match.Value;
+        }
+
+        public static string GetNugetVersion(XmlNode node) { return node.Attributes.OfType<XmlAttribute>().First(a => a.Name.Equals("Version", StringComparison.InvariantCultureIgnoreCase)).Value; }
+
+        public static string GetNugetName(XmlNode node) { return node.Attributes.OfType<XmlAttribute>().First(a => a.Name.Equals("Include", StringComparison.InvariantCultureIgnoreCase)).Value; }
+    }
+#>
