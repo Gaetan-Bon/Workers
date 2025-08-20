@@ -1,9 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputPath>..\Build\$(Platform)</OutputPath>
+        <BaseIntermediateOutputPath>obj</BaseIntermediateOutputPath>
+        <TargetFrameworks>net462;net47;net471;net472;net48;net481;net6.0;net8.0</TargetFrameworks>
+        <Platforms>x64</Platforms>
+        <IsPackable>false</IsPackable>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <SignAssembly>True</SignAssembly>
+        <LangVersion>13.0</LangVersion>
+    </PropertyGroup>
 
+    <ItemGroup>
+        <Compile Remove="obj\**" />
+        <EmbeddedResource Remove="obj\**" />
+        <None Remove="obj\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    </ItemGroup>
+
+	<ItemGroup>
+		<None Update="Properties\AssemblyInfo.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>AssemblyInfo.cs</LastGenOutput>
+		</None>
+		<Compile Update="Properties\AssemblyInfo.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>AssemblyInfo.tt</DependentUpon>
+		</Compile>
+	</ItemGroup>
 </Project>
