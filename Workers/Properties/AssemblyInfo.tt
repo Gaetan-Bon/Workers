@@ -1,0 +1,7 @@
+<#@ output extension=".cs" #>
+using System.Reflection;
+
+[assembly: AssemblyTitle("Workers")]
+[assembly: AssemblyProduct("Workers")]
+[assembly: AssemblyCopyright("Copyright <#= DateTime.Now.Year #>")]
+[assembly: AssemblyVersion("1.0.0")]
